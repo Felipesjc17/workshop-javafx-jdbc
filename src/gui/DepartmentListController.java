@@ -1,18 +1,27 @@
 package gui;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import application.Main;
+import gui.util.Alerts;
+import gui.util.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Department;
 import model.service.DepartmentService;
@@ -36,8 +45,9 @@ public class DepartmentListController implements Initializable{
 	private ObservableList<Department> obsList;
 	
 	@FXML
-	public void onBtNewAction() {
-		System.out.println("onBtNewAction");
+	public void onBtNewAction(ActionEvent event) {
+		Stage parentStage = Utils.currentStage(event); //passando estado do Stage atual
+		createDialogForm("/gui/DepartmentForm.fxml", parentStage); //criando DialogForm
 	}
 	
 	public void setDepartmentService(DepartmentService service) {
@@ -61,12 +71,33 @@ public class DepartmentListController implements Initializable{
 		}
 	
 	public void updateTableView() {
-		if (service == null) { //verifica se service foi instânciado / se a dependência foi injetada
+		if (service == null) { //verifica se service foi instanciado / se a dependência foi injetada
 			throw new IllegalStateException("Service was null");
 		}
 		List<Department> list = service.findAll(); //pegando lista 
 		obsList = FXCollections.observableArrayList(list); // passando para obsList
 		tableViewDepartment.setItems(obsList); // carregando na tabela
-	}
+		
+		}
 
+	private void createDialogForm(String absoluteName, Stage parentStage) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+			Pane pane = loader.load(); // carregando view em pane
+			
+			
+			
+			Stage dialogStage = new Stage(); // instanciando novo stage para aparecer na frente do stage principal(palco)
+			dialogStage.setTitle("Enter Department data");
+			dialogStage.setScene(new Scene(pane)); // carregando nova scene
+			dialogStage.setResizable(false); //Janela não pode ser redimensionada
+			dialogStage.initOwner(parentStage); //Stage pai da janela
+			dialogStage.initModality(Modality.WINDOW_MODAL);//comportamento da janela, travada, não pode acessar janela anterior até fechá-la
+			dialogStage.showAndWait();//chamando a janela para preencher novo department
+		}
+		catch(IOException e) {
+			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR); 
+		}
+	}
+	
 }

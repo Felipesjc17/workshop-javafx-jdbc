@@ -37,7 +37,7 @@ public class MainViewController implements Initializable{
 
 	@FXML
 	private void onMenuItemDepartmentAction() {
-		loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) -> { 
+		loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) -> { //clicando na aba department carrega loadView instanciando novo departmente e carrega tabela do Banco 
 			controller.setDepartmentService(new DepartmentService());
 			controller.updateTableView();
 		});
