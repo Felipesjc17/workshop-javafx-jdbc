@@ -28,7 +28,7 @@ import model.service.DepartmentService;
 
 public class DepartmentListController implements Initializable{
 	
-	private DepartmentService service = new DepartmentService();
+	private DepartmentService service;
 	
 	@FXML
 	private TableView<Department> tableViewDepartment;
@@ -47,7 +47,7 @@ public class DepartmentListController implements Initializable{
 	@FXML
 	public void onBtNewAction(ActionEvent event) {
 		Stage parentStage = Utils.currentStage(event); //passando estado do Stage atual
-		Department obj = new Department();
+		Department obj = new Department();//criando obj vazio que vai ser passado no formulário
 		createDialogForm(obj, "/gui/DepartmentForm.fxml", parentStage); //criando DialogForm
 	}
 	
@@ -88,6 +88,7 @@ public class DepartmentListController implements Initializable{
 			
 			DepartmentFormController controller = loader.getController(); //pegando controlador da tela carregada
 			controller.setDepartment(obj); //injetando obj do department no controlador
+			controller.setDepartmentService(new DepartmentService()); // injeção de dependência 
 			controller.updateFormData(); //carregando dados do obj vazio no formulario 
 			
 			Stage dialogStage = new Stage(); // instanciando novo stage para aparecer na frente do stage principal(palco)

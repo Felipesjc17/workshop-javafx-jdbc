@@ -15,5 +15,14 @@ public class DepartmentService {
 		
 	}
 	
+	//salvar ou atualizar department no bd
+	public void saveOrUpdate(Department obj) {
+		if(obj.getId() == null) {
+			dao.insert(obj);
+		}
+		else {
+			dao.update(obj);
+		}
+	}
 
 }

@@ -11,4 +11,15 @@ public class Utils {
 		
 	}
 	
+	public static Integer tryParceToInt(String str ) { //Se não conseguir converter para int retorna null
+		try {
+					
+		return Integer.parseInt(str);
+		
+		}
+		catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
 }
