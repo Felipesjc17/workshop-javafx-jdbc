@@ -3,7 +3,9 @@ package gui;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import db.DbException;
 import gui.listeners.DataChangeListener;
@@ -18,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.entities.Department;
+import model.exceptions.ValidationException;
 import model.service.DepartmentService;
 
 public class DepartmentFormController implements Initializable{
@@ -66,18 +69,23 @@ public class DepartmentFormController implements Initializable{
 		if(service == null) {
 			throw new IllegalStateException("Service was null");
 		}
-		try { //alerta de erro com BD
+		try { //alerta de erro com BD e erro nos campos do formulário
+			
 		entity = getFormData();//pegar info da Label e instanciar novo obj e passa para entity
 		service.saveOrUpdate(entity);//salva novo obj no obj DepartmentService
-		notifyDataChangeListeners(); //Notificando para lista o evento
+		notifyDataChangeListeners(); //Notificando para lista que um evento ocorreu (subject)
 		Utils.currentStage(event).close();//pega janela e fecha após acionar botão
+		
 		}
-		catch(DbException e) {
+		catch (ValidationException e) { //tratando validação de erros na digitação do formulário
+			setErrorMessages(e.getErrors());
+		}
+		catch(DbException e) {  // tratando erro no banco
 			Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
 		}
 	}
 	
-	private void notifyDataChangeListeners() { //emitindo evento para cada um da lista
+	private void notifyDataChangeListeners() { //emitindo evento para cada um da lista (subject)
 		for (DataChangeListener listener : dataChangeListeners) { //varrendo lista
 			listener.onDataChanged(); //notificando todos 
 		}
@@ -86,8 +94,23 @@ public class DepartmentFormController implements Initializable{
 
 	private Department getFormData() {//pega os dados do formulario instancia obj e passa os dados para esse obj
 		Department obj = new Department();		
+		
+		ValidationException exception = new ValidationException("Validation error"); //instanciando validação
+		
 		obj.setId(Utils.tryParceToInt(txtId.getText()));//passando o Id da caixa para obj já convertido para inteiro ou null se for vazio tratado pela função tryParceToInt
+		
+		//se txt name tiver espaço no começo ou final (trim) ou Equals (" ") String vazia, lança exceção
+		
+		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
+			exception.addError("name", "Field can't be empty"); 
+			}
+			
 		obj.setName(txtName.getText());
+		
+		if (exception.getErrors().size() > 0) { //testando se a coleção tem erro, se tiver lança o erro
+			throw exception;
+		}
+		
 		return obj;
 	}
 
@@ -116,8 +139,14 @@ public class DepartmentFormController implements Initializable{
 		txtId.setText(String.valueOf(entity.getId()));
 		txtName.setText(entity.getName());
 		
+	}
+	
+	private void setErrorMessages(Map<String, String> errors){ 
+		Set<String> fields = errors.keySet(); //pegando chave do erro
 		
-		
+		if(fields.contains("name")) { // verificando se a chave é name, confirmando o erro
+			labelErrorName.setText(errors.get("name")); //passando conteudo da chave name para o campo de erro da janela
+		}
 	}
 
 }
